@@ -46,7 +46,7 @@ print('#instances:', num_instances, '\n#questions:', num_questions)
 longest_instance = str(max(instances, key=len))
 
 max_words = 10000  # 10k most common words
-max_len = 100  # first 100 words of the instance
+max_len = 150  # first 150 words of the instance
 # TODO: print(len(longest_instance.split())); define max_len -> (152, 793)
 
 # tokenizing + word index
@@ -60,8 +60,9 @@ instances_data = pad_sequences(sequences, maxlen=max_len)  # pads sequences to t
 print('#distinct words:', len(word_index))  # number of distinct words
 
 # glove embeddings
+glove_dir = '../Glove'
 embeddings_index = {}  # 400k pretrained word embeddings
-f = open(os.path.join(data_dir, 'glove.6B.100d.txt'), encoding="utf8")
+f = open(os.path.join(glove_dir, 'glove.6B.100d.txt'), encoding="utf8")
 # (word, vector representation of the word) -> ('the', [-0.038194 -0.24487   0.72812 ...])
 
 for line in f:
@@ -80,5 +81,4 @@ for word, i in word_index.items():  # goes through all the words in the reviews,
             embedding_matrix[i] = embedding_vector
         # words not found in the embedding index will be all zeros
 
-print(embeddings_index['the'])
-# TODO: add glove files
+# model
