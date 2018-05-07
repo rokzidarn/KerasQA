@@ -4,6 +4,9 @@ from functools import reduce
 from xml.etree import ElementTree as Et
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
+from keras.models import Model
+from keras import layers
+from keras import Input
 
 # file locations
 data_dir = 'Data'
@@ -120,3 +123,16 @@ for word, i in word_index_answers.items():  # goes through all the words in the 
         # words not found in the embedding index will be all zeros
 
 # model
+text_input = Input(shape=(None,), dtype='int32', name='instances_data')  # name attribute = variable called "text"
+embedded_text = layers.Embedding(64, len(word_index_instances))(text_input)
+encoded_text = layers.LSTM(32)(embedded_text)
+
+question_input = Input(shape=(None,), dtype='int32', name='questions_data')
+embedded_question = layers.Embedding(32, len(word_index_questions))(question_input)
+encoded_question = layers.LSTM(16)(embedded_question)
+
+concatenated = layers.concatenate([encoded_text, encoded_question], axis=-1)
+answer = layers.Dense(len(word_index_answers), activation='softmax')(concatenated)
+
+model = Model([text_input, question_input], answer)
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
