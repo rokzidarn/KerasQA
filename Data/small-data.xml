@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<!DOCTYPE data SYSTEM "MCScript.dtd">
+<data>
+  <instance id="0" scenario="changing a light bulb">
+    <text>I went into my bedroom and flipped the light switch. Oh, I see that the ceiling lamp is not turning on. It must be that the light bulb needs replacement. I go through my closet and find a new light bulb that will fit this lamp and place it in my pocket. I also get my stepladder and place it under the lamp. I make sure the light switch is in the off position. I climb up the ladder and unscrew the old light bulb. I place the old bulb in my pocket and take out the new one. I then screw in the new bulb. I climb down the stepladder and place it back into the closet. I then throw out the old bulb into the recycling bin. I go back to my bedroom and turn on the light switch. I am happy to see that there is again light in my room.</text>
+    <questions>
+      <question id="0" text="Which room did the light go out in?" type="text">
+        <answer correct="False" id="0" text="Kitchen."/>
+        <answer correct="True" id="1" text="Bedroom."/>
+      </question>
+      <question id="1" text="How did they reach the light bulb socket in the ceiling?" type="text">
+        <answer correct="False" id="0" text="standing on a bucket"/>
+        <answer correct="True" id="1" text="They used a stepladder"/>
+      </question>
+      <question id="2" text="How did they reach the light fixture to change the light bulb?" type="text">
+        <answer correct="False" id="0" text="a chair"/>
+        <answer correct="True" id="1" text="They got the stepladder"/>
+      </question>
+      <question id="3" text="Where was the light bulb that needed to be replaced?" type="text">
+        <answer correct="True" id="0" text="Ceiling lamp"/>
+        <answer correct="False" id="1" text="A bedside lamp"/>
+      </question>
+      <question id="4" text="Why did they have to change the old light bulb?" type="text">
+        <answer correct="False" id="0" text="It shattered"/>
+        <answer correct="True" id="1" text="Worn"/>
+      </question>
+      <question id="5" text="How did they screw in the new light bulb?" type="commonsense">
+        <answer correct="False" id="0" text="the pushed it in place."/>
+        <answer correct="True" id="1" text="By hand"/>
+      </question>
+      <question id="6" text="Was the light bulb still hot?" type="commonsense">
+        <answer correct="False" id="0" text="yes"/>
+        <answer correct="True" id="1" text="No."/>
+      </question>
+      <question id="7" text="Was the light bulb in a lamp or ceiling?" type="text">
+        <answer correct="False" id="0" text="A lamp"/>
+        <answer correct="True" id="1" text="The ceiling"/>
+      </question>
+      <question id="8" text="Did they get help from someone?" type="text">
+        <answer correct="False" id="0" text="yes"/>
+        <answer correct="True" id="1" text="no"/>
+      </question>
+    </questions>
+  </instance>
+</data>

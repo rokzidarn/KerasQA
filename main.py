@@ -1,7 +1,6 @@
 import os
 import collections
 import nltk
-import itertools
 from xml.etree import ElementTree as Et
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils import np_utils
@@ -39,12 +38,11 @@ def parse_file(directory, file):
 
 def build_vocababulary(train_data, test_data):
     counter = collections.Counter()
-    num = int((len(train_data[0]) + len(test_data[0])) / 10)
     for stories, questions, answers in [train_data, test_data]:
         for story in stories:
-            for sent in story:
-                for word in nltk.word_tokenize(sent):
-                    counter[word.lower()] += 1
+            for word in nltk.word_tokenize(story):
+                #print(word)
+                counter[word.lower()] += 1
         for question in questions:
             for word in nltk.word_tokenize(question):
                 counter[word.lower()] += 1
@@ -64,8 +62,7 @@ def vectorize(data, word2idx, story_maxlen, question_maxlen):
     stories, questions, answers = data
 
     for story, question, answer in zip(stories, questions, answers):
-        xs = [[word2idx[w.lower()] for w in nltk.word_tokenize(s)] for s in story]
-        xs = list(itertools.chain.from_iterable(xs))
+        xs = [word2idx[w.lower()] for w in nltk.word_tokenize(story)]
         xq = [word2idx[w.lower()] for w in nltk.word_tokenize(question)]
         Xs.append(xs)
         Xq.append(xq)
@@ -117,13 +114,13 @@ def plot_acc(history_dict, epochs):
 data_dir = 'Data'
 train_file = 'train-data.xml'  # combined train and dev samples
 test_file = 'test-data.xml'
+small_file = 'small-data.xml'
 
 # getting data
 train_data = parse_file(data_dir, train_file)
 test_data = parse_file(data_dir, test_file)
 
 # text stats
-max_words = 10000  # 10k most common words
 max_len_instance = len(str(max(train_data[0], key=len)).split())
 max_len_question = len(str(max(train_data[1], key=len)).split())
 max_len_answer = len(str(max(train_data[2], key=len)).split())
@@ -135,10 +132,15 @@ word2idx = build_vocababulary(train_data, test_data)
 vocabulary_size = len(word2idx)
 
 print('train + test distinct words: ', vocabulary_size)
+#print(word2idx)
 
 # vectorizing data
 Xstrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, max_len_instance, max_len_question)
 Xstest, Xqtest, Ytest = vectorize(test_data, word2idx, max_len_instance, max_len_question)
+
+#print(Xstrain[0])
+#print(Xqtrain[0])
+#print(Ytrain[0])
 
 # encoding
 (instance_input, question_input, question_encoder, response) = data_encoding(max_len_instance, max_len_question, vocabulary_size)
@@ -163,5 +165,9 @@ epochs = range(1, 64 + 1)
 
 plot_acc(history_dict, epochs)
 
+# TODO: check vectorize method!!!
 # TODO: rewrite build_vocabulary() function
+
+# TODO: different encoding structure
+# TODO: transform multiword answers to oneword by excluding unnecessary words with nltk while parsing
 # TODO: predict by saving true and false answers of train data and use argmax on true and false anwsers use max of them
