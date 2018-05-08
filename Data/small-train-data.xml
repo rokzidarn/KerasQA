@@ -6,7 +6,7 @@
     <questions>
       <question id="0" text="Which room did the light go out in?" type="text">
         <answer correct="False" id="0" text="Kitchen."/>
-        <answer correct="True" id="1" text="Bedroom."/>
+        <answer correct="True" id="1" text="Bedroom"/>
       </question>
       <question id="1" text="How did they reach the light bulb socket in the ceiling?" type="text">
         <answer correct="False" id="0" text="standing on a bucket"/>
@@ -47,7 +47,7 @@
     <questions>
       <question id="0" text="Who is invited to the barbecue?" type="text">
         <answer correct="False" id="0" text="co workers"/>
-        <answer correct="True" id="1" text="their friends"/>
+        <answer correct="True" id="1" text="friends"/>
       </question>
       <question id="1" text="Do people need to bring extra cups for the barbecue?" type="commonsense">
         <answer correct="False" id="0" text="yes"/>
@@ -87,7 +87,7 @@
     <text>On Sunday mornings, our paper boy usually has the paper delivered by 7 AM.  He rides his bike through the neighborhood and tosses the papers on everyone's yards before most anyone gets up.  When I wake up on Sunday mornings, I put on my robe and put on my slippers.  I walk down the stairs and go to the door.  I unlock it and go outside to look for my paper.  I walk down the steps and I see it on the lawn, carefully wrapped in plastic, protecting it from the weather.  I grab the paper and pull it out of the plastic as I walk back up the steps and go back into my house.  I throw away the plastic and sit at the table while my coffee brews.  I scan over the paper looking at the different articles, focusing on one in particular about a local political debate.</text>
     <questions>
       <question id="0" text="Did they have to leave the house?" type="text">
-        <answer correct="True" id="0" text="Yes, they had to walk out to the yard."/>
+        <answer correct="True" id="0" text="Yes"/>
         <answer correct="False" id="1" text="No, the paper boy puts in between the screen and inner doors."/>
       </question>
       <question id="1" text="What were they drinking while reading?" type="text">
@@ -109,7 +109,7 @@
     <questions>
       <question id="0" text="What tools were needed to paint?" type="commonsense">
         <answer correct="False" id="0" text="scissors, paint brush, frying pan, bleach"/>
-        <answer correct="True" id="1" text="paint brush"/>
+        <answer correct="True" id="1" text="paintbrush"/>
       </question>
       <question id="1" text="When did they decide to paint?" type="text">
         <answer correct="False" id="0" text="When they moved into an apartment."/>
@@ -121,7 +121,7 @@
     <text>After grabbing the laundry basket and unloading my now dry clothes from the dryer I take all my dress shirts, slacks, and dresses over to the room where we keep the ironing board. I take out a pair of dress slacks and lay them out carefully over the ironing board with the legs laid out flat so they can be pressed with the iron. I turn on the iron to medium heat and take out a can of starch. Starch helps keep the pants from wrinkling, starch is almost like hairspray for clothes, keeps things from moving out of place. From there I push the iron back and forth from the bottom of the pant leg all the way up to the waist until all the wrinkles on the pants have been ironed out. Once finished with one side of the pants, I flip the pants over and iron the other side. When the pants are finished being ironed, they need to be hung up on a coat hanger so they can stay nice and pressed.</text>
     <questions>
       <question id="0" text="When did the iron get hot?" type="text">
-        <answer correct="True" id="0" text="When it was turned on"/>
+        <answer correct="True" id="0" text="turned"/>
         <answer correct="False" id="1" text="When the iron was put on the stove"/>
       </question>
       <question id="1" text="Why did they need to iron the clothes?" type="commonsense">
@@ -155,7 +155,7 @@
     <questions>
       <question id="0" text="Why did they take plastic bags with them?" type="text">
         <answer correct="False" id="0" text="To carry the leash."/>
-        <answer correct="True" id="1" text="To clean up the dog's mess"/>
+        <answer correct="True" id="1" text="clean"/>
       </question>
       <question id="1" text="What was the person's name who walked the dog?" type="text">
         <answer correct="False" id="0" text="Johnny"/>
@@ -180,110 +180,6 @@
       <question id="6" text="Did they take the dog to a park?" type="text">
         <answer correct="False" id="0" text="No, they did not."/>
         <answer correct="True" id="1" text="Yes, they did."/>
-      </question>
-    </questions>
-  </instance>
-  <instance id="6" scenario="painting a wall">
-    <text>Today we decided to paint the extra room in our house. Were going to have visitor coming next month so hopefully the painting ain't that smelly anymore. I made sure that the wall is clean and clear of all the nuisance. We already bought the pain and we decided the new wall pain is sky blue. My husband is putting newspaper on the floor to avoid any spill on our floor/carpet. We put tarp on the floor too before we put the newspaper. I finally start painting and it was so easy because we made sure that everything was ready before we started. It didn't take us 30 minutes to finish the whole job. We leave everything in the room except the paints, brush and other stuff that we used. We will be cleaning and removing the newspapers and tarp once the wall paint is dry. It was fun afternoon working together and we both love the result.</text>
-    <questions>
-      <question id="0" text="Did anyone help him?" type="text">
-        <answer correct="True" id="0" text="It was the narrator and their husband"/>
-        <answer correct="False" id="1" text="No, they worked alone."/>
-      </question>
-      <question id="1" text="Were they happy with the paint job when they were done?" type="text">
-        <answer correct="True" id="0" text="yes lot"/>
-        <answer correct="False" id="1" text="No, they were not."/>
-      </question>
-      <question id="2" text="Were any children involved in the task?" type="text">
-        <answer correct="True" id="0" text="No children helped."/>
-        <answer correct="False" id="1" text="Yes, they were."/>
-      </question>
-      <question id="3" text="Were they neat or sloppy?" type="commonsense">
-        <answer correct="True" id="0" text="They were neat and laid down tarp and news paper."/>
-        <answer correct="False" id="1" text="They were sloppy and got paint on the carpet."/>
-      </question>
-      <question id="4" text="Was there more than one color being painted?" type="text">
-        <answer correct="True" id="0" text="no just single color"/>
-        <answer correct="False" id="1" text="Yes, they used a lot of colors."/>
-      </question>
-      <question id="5" text="Did they do a good job painting?" type="text">
-        <answer correct="True" id="0" text="They loved the results"/>
-        <answer correct="False" id="1" text="They didn't care for how it turned out"/>
-      </question>
-      <question id="6" text="Who painted the wall?" type="text">
-        <answer correct="False" id="0" text="The narrator and their friends"/>
-        <answer correct="True" id="1" text="The narrator and their spouse"/>
-      </question>
-      <question id="7" text="What color did they paint it?" type="text">
-        <answer correct="False" id="0" text="red"/>
-        <answer correct="True" id="1" text="sky blue"/>
-      </question>
-      <question id="8" text="When did they start painting?" type="text">
-        <answer correct="False" id="0" text="the week before"/>
-        <answer correct="True" id="1" text="Today"/>
-      </question>
-    </questions>
-  </instance>
-  <instance id="7" scenario="ordering a pizza">
-    <text>Last night my friend and I sit in and begin ordering a pizza. This couple came into Pizza Hut and the waitress seated them. As we sit there having our pizza, a second part of the same family came into Pizza Hut which contain about 100 people needed to be seated. A couple of tables were pulled together.  Everyone begin ordering  pizza. It took several waitresses to handle their order. The entire table was full with food. The guesses continue to order  drinks. the waitresses walked back and fourth until everyone was full. My friend and I sit there watching as the waitresses begin cleaning the table. After everyone left the table, when the waitresses return they only find two dollars left on the table for there tips.  One of the waitress begin crying, because as hard as she worked, out of one hundred and two people the waitresses only got two dollars tip. My friend and I felt bad about how they were treated and we left them a sixty dollar tip.</text>
-    <questions>
-      <question id="0" text="Where did they sit?" type="text">
-        <answer correct="True" id="0" text="In the Pizza Hut store."/>
-        <answer correct="False" id="1" text="In Domino's."/>
-      </question>
-      <question id="1" text="How did they place the order?" type="text">
-        <answer correct="True" id="0" text="By themselves."/>
-        <answer correct="False" id="1" text="They ordered online"/>
-      </question>
-    </questions>
-  </instance>
-  <instance id="8" scenario="ordering a pizza">
-    <text>Tom's dad ordered pizza yesterday for the family. He picked the phone up, and called Dominoes Pizza.  When he spoke , he told the man he wanted a large pepperoni pizza with thin crust and extra cheese.  He also said to bring a coke.  His dad paid for the pizza by giving the man on the phone his card numbers for his debit card.  Then the man gave Tom's dad a time that they would deliver the pizza.  Thirty-five minutes later, a pizza delivery guy knocked on the front door, and gave his dad  the pizza.  He signed the receipt, and gave the guy a tip, $2, for bringing it to them fast.  The boy thanked him and left.  Tom's dad called to the family to come eat dinner, and set the pizza on the table to eat.  He put plates on the table, and poured the coke for everyone to drink, and they ate every single slice of pizza!</text>
-    <questions>
-      <question id="0" text="Did they use a coupon?" type="commonsense">
-        <answer correct="False" id="0" text="Yes"/>
-        <answer correct="True" id="1" text="No"/>
-      </question>
-      <question id="1" text="What did they order?" type="text">
-        <answer correct="True" id="0" text="Large pepperoni pizza with extra cheese and thin crust."/>
-        <answer correct="False" id="1" text="Cheese pizza"/>
-      </question>
-      <question id="2" text="When did they decide to order a pizza?" type="text">
-        <answer correct="True" id="0" text="yesterday"/>
-        <answer correct="False" id="1" text="last week"/>
-      </question>
-      <question id="3" text="Was there any pizza left over?" type="text">
-        <answer correct="False" id="0" text="yes, just one"/>
-        <answer correct="True" id="1" text="no they ate every single slice"/>
-      </question>
-      <question id="4" text="How much time did it take?" type="text">
-        <answer correct="True" id="0" text="35 minutes"/>
-        <answer correct="False" id="1" text="an hour"/>
-      </question>
-      <question id="5" text="Why don't we use a fork to eat pizza?" type="commonsense">
-        <answer correct="False" id="0" text="You eat it with a fork and knife"/>
-        <answer correct="True" id="1" text="Hand held tradition"/>
-      </question>
-      <question id="6" text="Where did they order the pizza from?" type="text">
-        <answer correct="False" id="0" text="pizza hut"/>
-        <answer correct="True" id="1" text="Domino's"/>
-      </question>
-      <question id="7" text="Why did they order pizza?" type="commonsense">
-        <answer correct="False" id="0" text="It didn't say."/>
-        <answer correct="True" id="1" text="Hungry/dinner"/>
-      </question>
-      <question id="8" text="When did they order the pizza?" type="text">
-        <answer correct="False" id="0" text="For lunch"/>
-        <answer correct="True" id="1" text="Yesterday at dinner time"/>
-      </question>
-    </questions>
-  </instance>
-  <instance id="9" scenario="driving a car">
-    <text>Today I decided to go for a drive. I got my keys and unlocked my car. I got inside the car and sat down. I adjusted my seat and mirrors and put my seat belt on. I then put the keys in the ignition switch and cranked the car. I put the car in reverse and looked in my rear view mirror to see if it was clear to back out of my driveway. I saw that it was clear, so I began to back out of my driveway carefully while positioning my hands on the steering wheel in the ten and two positions. I gently pressed the gas pedal, I slowly backed out of my driveway. Once I was out on the road, I carefully put my breaks on and put the car in drive. After I put the car in drive, I gently pressed the gas and began driving down the road.</text>
-    <questions>
-      <question id="0" text="Did the driver wear a seatbelt?" type="text">
-        <answer correct="False" id="0" text="No."/>
-        <answer correct="True" id="1" text="Yes"/>
       </question>
     </questions>
   </instance>

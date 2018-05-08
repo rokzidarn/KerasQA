@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<!DOCTYPE data SYSTEM "MCScript.dtd">
+<data>
+  <instance id="0" scenario="getting the newspaper">
+    <text>Early this morning I woke up to the sound of my newspaper landing on my driveway. I sat up and wrapped my pink robe around me. I slipped my feet into my slippers and looked at the clock. It was only 7:00 but it was time for me to get my newspaper and drink some coffee. I looked out the window and noticed it was raining quite a bit. I saw the newspaper at the end of my driveway, as far away as it could be. I grabbed my umbrella out of my coat closet and opened my front door enough to stick the umbrella through and open it outside. I stepped out the door and quickly covered my head with the umbrella. Then I ran to the end of my driveway, scooped up the newspaper in its plastic wrapping, and ran back to my front door. I closed my umbrella, took off my slippers, and dried off. Then, I unwrapped my newspaper and sat down to read it.</text>
+    <questions>
+      <question id="0" text="Do they read the paper daily?" type="commonsense">
+        <answer correct="False" id="0" text="No they usually watch TV in the mornings."/>
+        <answer correct="True" id="1" text="Yes"/>
+      </question>
+      <question id="1" text="Where was the newspaper located?" type="text">
+        <answer correct="False" id="0" text="In front of the door."/>
+        <answer correct="True" id="1" text="At the very end of the drive way."/>
+      </question>
+      <question id="2" text="Were they wearing a robe and slippers when getting it?" type="text">
+        <answer correct="False" id="0" text="No, they put on a shirt and pants."/>
+        <answer correct="True" id="1" text="yes"/>
+      </question>
+      <question id="3" text="What time they wake up in the morning?" type="text">
+        <answer correct="False" id="0" text="9:00 am"/>
+        <answer correct="True" id="1" text="seven o'clock"/>
+      </question>
+      <question id="4" text="Do they read it at home?" type="text">
+        <answer correct="True" id="0" text="Yes"/>
+        <answer correct="False" id="1" text="No."/>
+      </question>
+      <question id="5" text="Is it delivered every day?" type="commonsense">
+        <answer correct="True" id="0" text="Yes"/>
+        <answer correct="False" id="1" text="No, they bought the paper before they got on the bus."/>
+      </question>
+    </questions>
+  </instance>
+</data>
