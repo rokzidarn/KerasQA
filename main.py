@@ -18,21 +18,26 @@ def parse_file(directory, file):
     questions = []  # 1 question per instance
     answers = []  # true answer per each question, ignore false
 
+    tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
+    stopwords = nltk.corpus.stopwords.words('english')  # TODO
+
     # transforming text data to arrays
     for instance in root:  # instance/story
         for question in instance[1]:  # multiple questions
             if question[0].attrib['correct'] == 'True':  # 2 possible answers; true then false
-                a = question[0].attrib['text']  # TODO: transform multiword answers to oneword by excluding unnecessary words with nltk while parsing
-                if len(nltk.word_tokenize(a)) == 1:  # 1 word answer
+                a = question[0].attrib['text']
+                answer_filtered = tokenizer.tokenize(a)
+                if len(answer_filtered) == 1:  # 1 word answer
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
-                    answers.append(a)
+                    answers.append(answer_filtered[0])
             else:  # 2 possible answers; false then true
                 a = question[1].attrib['text']
-                if len(nltk.word_tokenize(a)) == 1:
+                answer_filtered = tokenizer.tokenize(a)
+                if len(answer_filtered) == 1:
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
-                    answers.append(a)
+                    answers.append(answer_filtered[0])
 
     return instances, questions, answers
 
