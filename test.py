@@ -1,65 +1,68 @@
 import os
-import numpy as np
-from functools import reduce
+import collections
+import nltk
 from xml.etree import ElementTree as Et
-from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
+from keras.utils import np_utils
+from keras.layers import Input
+from keras.layers.core import Activation, Dense, Dropout, Permute
+from keras.layers.embeddings import Embedding
+from keras.layers.merge import add, concatenate, dot
+from keras.layers.recurrent import LSTM
 from keras.models import Model
-from keras import layers
-from keras import Input
+import matplotlib.pyplot as plt
 
-# file locations
-data_dir = 'Data'
-train_file = 'train-data.xml'
-dev_file = 'dev-data.xml'
-test_file = 'test-data.xml'
-first_file = 'first-data.xml'
+def build_vocababulary(train_data):
+    counter = collections.Counter()
+    for story in train_data:
+        for word in nltk.word_tokenize(story):
+            #print(word)
+            counter[word.lower()] += 1
+    word2idx = {w: (i+1) for i, (w, _) in enumerate(counter.most_common())}
+    word2idx["PAD"] = 0
+    #idx2word = {v: k for k, v in word2idx.items()}
 
-# xml file parsing
-root = Et.parse(os.path.join(data_dir, first_file)).getroot()
-instances = []  # list of instances/stories
-questions = []
-answers = []
+    return word2idx
 
-num_instances = 0
-num_questions = 0
-num_answers = 0  # only true answers
+def vectorize(data, word2idx, story_maxlen, question_maxlen):
+    Xs = []
+    Xq = []
+    Y = []
+    stories, questions, answers = data
 
-# transforming text data to arrays
-for instance in root:  # instance/story
-    num_instances += 1
-    instances.append(instance[0].text)
-    instance_questions = []
-    for question in instance[1]:  # multiple questions
-        num_questions += 1
-        instance_questions.append(question.attrib['text'])
-        if question[0].attrib['correct'] == 'True':  # 2 possible answers; true then false
-            num_answers += 1
-            answers.append(question[0].attrib['text'])
-        else:  # 2 possible answers; false then true
-            num_answers += 1
-            answers.append(question[1].attrib['text'])
-    questions.append(instance_questions)
+    for story, question, answer in zip(stories, questions, answers):
+        xs = [word2idx[w.lower()] for w in nltk.word_tokenize(story)]
+        xq = [word2idx[w.lower()] for w in nltk.word_tokenize(question)]
+        Xs.append(xs)
+        Xq.append(xq)
+        Y.append(word2idx[answer.lower()])
 
-# vocabulary stats
-max_len_instance = len(str(max(instances, key=len)).split())
-max_len_question = len(str(max(questions, key=len)).split())
-max_len_answer = len(str(max(answers, key=len)).split())
+    return pad_sequences(Xs, maxlen=story_maxlen), pad_sequences(Xq, maxlen=question_maxlen), np_utils.to_categorical(Y, num_classes=len(word2idx))
 
-print('#data (I,Q,A):', num_instances, num_questions, num_answers)
-print('#max lengths (I,Q,A):', max_len_instance, max_len_question, max_len_answer)
+text1 = 'Hello my name is, my name is Slim Shady.'
+text_arr1 = nltk.word_tokenize(text1)
+#print(text_arr1)
+text2 = 'Who is Slim?'
+text_arr2 = nltk.word_tokenize(text1)
+text_arr = [text1, text2]
+max_len_instance = len(nltk.word_tokenize((max(text_arr, key=len))))
+#print(max_len_instance)
 
-max_words = 10000  # 10k most common words
+word2idx = build_vocababulary(text_arr)
+vocabulary_size = len(word2idx)
+#print(word2idx)
 
-# tokenizing + word index
-tokenizer = Tokenizer(num_words=max_words)
+xs = [[word2idx[w.lower()] for w in nltk.word_tokenize(story)] for story in text_arr]
+#print(xs)
+#print(pad_sequences(xs, maxlen=max_len_instance))
 
-# instances
-all_instances = ' '.join(instances)
-tokenizer.fit_on_texts(all_instances)  # words represented as a number
-word_index_instances = tokenizer.word_index  # dictionary of distinct words -> (key, value) - ('word', index) -> ('the', 152)
-sequences = tokenizer.texts_to_sequences(all_instances)  # each instance represented as numerical array
-instances_data = pad_sequences(sequences, maxlen=max_len_instance)  # pads sequences to the same length
+from sklearn.feature_extraction.text import CountVectorizer
+# list of text documents
+text = ["The quick brown fox jumped over the lazy dog."]
+# create the transform
+vectorizer = CountVectorizer()
+# tokenize and build vocab
+vectorizer.fit(text)
+# summarize
+print(vectorizer.vocabulary_)
 
-# print(word_index)
-print('#distinct words (I,Q,A):', len(word_index_instances))

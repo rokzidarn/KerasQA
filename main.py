@@ -22,7 +22,7 @@ def parse_file(directory, file):
     for instance in root:  # instance/story
         for question in instance[1]:  # multiple questions
             if question[0].attrib['correct'] == 'True':  # 2 possible answers; true then false
-                a = question[0].attrib['text']
+                a = question[0].attrib['text']  # TODO: transform multiword answers to oneword by excluding unnecessary words with nltk while parsing
                 if len(nltk.word_tokenize(a)) == 1:  # 1 word answer
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
@@ -50,25 +50,26 @@ def build_vocababulary(train_data, test_data):
             for word in nltk.word_tokenize(answer):
                 counter[word.lower()] += 1
     word2idx = {w: (i+1) for i, (w, _) in enumerate(counter.most_common())}
+    # TODO: different vocabulary for answers
     word2idx["PAD"] = 0
     #idx2word = {v: k for k, v in word2idx.items()}
 
     return word2idx
 
 def vectorize(data, word2idx, story_maxlen, question_maxlen):
-    Xs = []
+    Xi = []
     Xq = []
     Y = []
-    stories, questions, answers = data
+    instances, questions, answers = data
 
-    for story, question, answer in zip(stories, questions, answers):
-        xs = [word2idx[w.lower()] for w in nltk.word_tokenize(story)]
+    for instance, question, answer in zip(instances, questions, answers):
+        xi = [word2idx[w.lower()] for w in nltk.word_tokenize(instance)]
         xq = [word2idx[w.lower()] for w in nltk.word_tokenize(question)]
-        Xs.append(xs)
+        Xi.append(xi)
         Xq.append(xq)
         Y.append(word2idx[answer.lower()])
 
-    return pad_sequences(Xs, maxlen=story_maxlen), pad_sequences(Xq, maxlen=question_maxlen), np_utils.to_categorical(Y, num_classes=len(word2idx))
+    return pad_sequences(Xi, maxlen=story_maxlen), pad_sequences(Xq, maxlen=question_maxlen), np_utils.to_categorical(Y, num_classes=len(word2idx))
 
 def data_encoding(max_len_instance, max_len_question, vocabulary_size):
     # inputs
@@ -76,19 +77,19 @@ def data_encoding(max_len_instance, max_len_question, vocabulary_size):
     question_input = Input(shape=(max_len_question,))
 
     # story encoder memory
-    instance_encoder = Embedding(input_dim=vocabulary_size, output_dim=96, input_length=max_len_instance)(instance_input)
-    instance_encoder = Dropout(0.2)(instance_encoder)
+    instance_encoder = Embedding(input_dim=vocabulary_size, output_dim=128, input_length=max_len_instance)(instance_input)
+    instance_encoder = Dropout(0.1)(instance_encoder)
 
     # question encoder
-    question_encoder = Embedding(input_dim=vocabulary_size, output_dim=96, input_length=max_len_question)(question_input)
-    question_encoder = Dropout(0.2)(question_encoder)
+    question_encoder = Embedding(input_dim=vocabulary_size, output_dim=128, input_length=max_len_question)(question_input)
+    question_encoder = Dropout(0.1)(question_encoder)
 
     # match between story and question
     match = dot([instance_encoder, question_encoder], axes=[2, 2])
 
     # encode story into vector space of question
     instance_encoder_c = Embedding(input_dim=vocabulary_size, output_dim=max_len_question, input_length=max_len_instance)(instance_input)
-    instance_encoder_c = Dropout(0.2)(instance_encoder_c)
+    instance_encoder_c = Dropout(0.1)(instance_encoder_c)
 
     # combine match and story vectors
     response = add([match, instance_encoder_c])
@@ -121,9 +122,9 @@ train_data = parse_file(data_dir, train_file)
 test_data = parse_file(data_dir, test_file)
 
 # text stats
-max_len_instance = len(str(max(train_data[0], key=len)).split())
-max_len_question = len(str(max(train_data[1], key=len)).split())
-max_len_answer = len(str(max(train_data[2], key=len)).split())
+max_len_instance = len(nltk.word_tokenize((max(train_data[0], key=len))))
+max_len_question = len(nltk.word_tokenize((max(train_data[1], key=len))))
+max_len_answer = len(nltk.word_tokenize((max(train_data[2], key=len))))
 print('train data (I,Q,A): ', len(train_data[0]), len(train_data[1]), len(train_data[2]))
 print('train data max lengths (I,Q,A):', max_len_instance, max_len_question, max_len_answer)
 
@@ -135,20 +136,16 @@ print('train + test distinct words: ', vocabulary_size)
 #print(word2idx)
 
 # vectorizing data
-Xstrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, max_len_instance, max_len_question)
-Xstest, Xqtest, Ytest = vectorize(test_data, word2idx, max_len_instance, max_len_question)
-
-#print(Xstrain[0])
-#print(Xqtrain[0])
-#print(Ytrain[0])
+Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, max_len_instance, max_len_question)
+Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, max_len_instance, max_len_question)
 
 # encoding
 (instance_input, question_input, question_encoder, response) = data_encoding(max_len_instance, max_len_question, vocabulary_size)
 
 # creating network
 answer = concatenate([response, question_encoder], axis=-1)
-answer = LSTM(48)(answer)
-answer = Dropout(0.2)(answer)
+answer = LSTM(128)(answer)
+answer = Dropout(0.1)(answer)
 answer = Dense(vocabulary_size)(answer)
 output = Activation("softmax")(answer)
 # output = Activation("sigmoid")(answer)
@@ -157,17 +154,13 @@ model.compile(optimizer="rmsprop", loss="categorical_crossentropy", metrics=["ac
 # model.compile(optimizer="sgd","adam", loss="binary_crossentropy", metrics=["mae"])
 
 # training
-history = model.fit([Xstrain, Xqtrain], [Ytrain], batch_size=32, epochs=64, validation_data=([Xstest, Xqtest], [Ytest]))
+history = model.fit([Xitrain, Xqtrain], [Ytrain], batch_size=32, epochs=32, validation_data=([Xitest, Xqtest], [Ytest]))
 
 history_dict = history.history  # data during training, history_dict.keys()
 print("validaton acc: ", round(max(history_dict['val_acc']), 3))
-epochs = range(1, 64 + 1)
+epochs = range(1, 32 + 1)
 
 plot_acc(history_dict, epochs)
 
-# TODO: check vectorize method!!!
-# TODO: rewrite build_vocabulary() function
-
 # TODO: different encoding structure
-# TODO: transform multiword answers to oneword by excluding unnecessary words with nltk while parsing
 # TODO: predict by saving true and false answers of train data and use argmax on true and false anwsers use max of them
