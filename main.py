@@ -43,24 +43,35 @@ def parse_file(directory, file):
 
 def build_vocababulary(train_data, test_data):
     counter = collections.Counter()
+    counter_answer = collections.Counter()
+    i = 0
     for stories, questions, answers in [train_data, test_data]:
         for story in stories:
             for word in nltk.word_tokenize(story):
-                #print(word)
                 counter[word.lower()] += 1
         for question in questions:
             for word in nltk.word_tokenize(question):
                 counter[word.lower()] += 1
         for answer in answers:
+            i += 1
             for word in nltk.word_tokenize(answer):
                 counter[word.lower()] += 1
+                counter_answer[word.lower()] += 1
+
     word2idx = {w: (i+1) for i, (w, _) in enumerate(counter.most_common())}
     word2idx["PAD"] = 0
-    #idx2word = {v: k for k, v in word2idx.items()}
+    # idx2word = {v: k for k, v in word2idx.items()}
 
-    return word2idx
+    word2idx_answer = {w: (i + 1) for i, (w, _) in enumerate(counter_answer.most_common())}
+    word2idx_answer["PAD"] = 0
 
-def vectorize(data, word2idx, story_maxlen, question_maxlen):
+    mca = counter_answer.most_common()[0]
+    print('Most common answer: ', mca)
+    print('Baseline: ', round(mca[1] / (len(train_data[2]) + len(test_data[2])), 3))
+
+    return word2idx, word2idx_answer
+
+def vectorize(data, word2idx, word2idx_answer, story_maxlen, question_maxlen):
     Xi = []
     Xq = []
     Y = []
@@ -75,25 +86,25 @@ def vectorize(data, word2idx, story_maxlen, question_maxlen):
 
     return pad_sequences(Xi, maxlen=story_maxlen), pad_sequences(Xq, maxlen=question_maxlen), np_utils.to_categorical(Y, num_classes=len(word2idx))
 
-def data_encoding(max_len_instance, max_len_question, vocabulary_size):
+def data_encoding(max_len_instance, max_len_question, vocabulary_size, embedding_size, dropout):
     # inputs
     instance_input = Input(shape=(max_len_instance,))
     question_input = Input(shape=(max_len_question,))
 
     # story encoder memory
-    instance_encoder = Embedding(input_dim=vocabulary_size, output_dim=128, input_length=max_len_instance)(instance_input)
-    instance_encoder = Dropout(0.1)(instance_encoder)
+    instance_encoder = Embedding(input_dim=vocabulary_size, output_dim=embedding_size, input_length=max_len_instance)(instance_input)
+    instance_encoder = Dropout(dropout)(instance_encoder)
 
     # question encoder
-    question_encoder = Embedding(input_dim=vocabulary_size, output_dim=128, input_length=max_len_question)(question_input)
-    question_encoder = Dropout(0.1)(question_encoder)
+    question_encoder = Embedding(input_dim=vocabulary_size, output_dim=embedding_size, input_length=max_len_question)(question_input)
+    question_encoder = Dropout(dropout)(question_encoder)
 
     # match between story and question
     match = dot([instance_encoder, question_encoder], axes=[2, 2])
 
     # encode story into vector space of question
     instance_encoder_c = Embedding(input_dim=vocabulary_size, output_dim=max_len_question, input_length=max_len_instance)(instance_input)
-    instance_encoder_c = Dropout(0.1)(instance_encoder_c)
+    instance_encoder_c = Dropout(dropout)(instance_encoder_c)
 
     # combine match and story vectors
     response = add([match, instance_encoder_c])
@@ -129,44 +140,51 @@ test_data = parse_file(data_dir, test_file)
 max_len_instance = len(nltk.word_tokenize((max(train_data[0], key=len))))
 max_len_question = len(nltk.word_tokenize((max(train_data[1], key=len))))
 max_len_answer = len(nltk.word_tokenize((max(train_data[2], key=len))))
-print('train data (I,Q,A): ', len(train_data[0]), len(train_data[1]), len(train_data[2]))
-print('train data max lengths (I,Q,A):', max_len_instance, max_len_question, max_len_answer)
+print('Train data (I,Q,A): ', len(train_data[0]), len(train_data[1]), len(train_data[2]))
+print('Train data max lengths (I,Q,A):', max_len_instance, max_len_question, max_len_answer)
 
 # building vocabulary
-word2idx = build_vocababulary(train_data, test_data)
+word2idx, word2idx_answer = build_vocababulary(train_data, test_data)
 vocabulary_size = len(word2idx)
+vocabulary_size_answer = len(word2idx_answer)
 
-print('train + test distinct words: ', vocabulary_size)
+print('Train + test distinct words: ', vocabulary_size)
 #print(word2idx)
 
 # vectorizing data
-Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, max_len_instance, max_len_question)
-Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, max_len_instance, max_len_question)
+Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answer, max_len_instance, max_len_question)
+Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answer, max_len_instance, max_len_question)
+
+# params
+embedding_size = 128
+dropout = 0.3
+latent_size = 64
+answer_dropout = 0.2
+epochs = 32
 
 # encoding
-(instance_input, question_input, question_encoder, response) = data_encoding(max_len_instance, max_len_question, vocabulary_size)
+(instance_input, question_input, question_encoder, response) = data_encoding(max_len_instance, max_len_question,
+                                                                             vocabulary_size, embedding_size, dropout)
 
 # creating network
 answer = concatenate([response, question_encoder], axis=-1)
-answer = LSTM(128)(answer)
-answer = Dropout(0.1)(answer)
+answer = LSTM(latent_size)(answer)
+answer = Dropout(answer_dropout)(answer)
 answer = Dense(vocabulary_size)(answer)
 output = Activation("softmax")(answer)
 # output = Activation("sigmoid")(answer)
 model = Model(inputs=[instance_input, question_input], outputs=output)
 model.compile(optimizer="rmsprop", loss="categorical_crossentropy", metrics=["accuracy"])
-# model.compile(optimizer="sgd","adam", loss="binary_crossentropy", metrics=["mae"])
+# model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["mae"])
 
 # training
 history = model.fit([Xitrain, Xqtrain], [Ytrain], batch_size=32, epochs=32, validation_data=([Xitest, Xqtest], [Ytest]))
 
 history_dict = history.history  # data during training, history_dict.keys()
-print("validaton acc: ", round(max(history_dict['val_acc']), 3))
-epochs = range(1, 32 + 1)
+print("Max validaton acc: ", round(max(history_dict['val_acc']), 3))
+gprah_epochs = range(1, epochs + 1)
 
-plot_acc(history_dict, epochs)
+plot_acc(history_dict, gprah_epochs)
 
-# TODO: different vocabulary for answers
 # TODO: different encoding structure
-# TODO: predict by saving true and false answers of train data and use argmax on true and false anwsers use max of them
-# TODO: baseline, count the most common possible answer
+# TODO: predict by saving true and false answers of test data and use argmax on possible anwsers
