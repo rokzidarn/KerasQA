@@ -74,23 +74,3 @@ a = "Hello, my name is Slim!"
 answer_tokens = tokenizer.tokenize(a)
 answer_filtered = [word for word in answer_tokens if word not in stopwords]
 print(' '.join(answer_filtered))
-
-
-"""
-            if question[0].attrib['correct'] == 'True':  # 2 possible answers; true then false
-                a = question[0].attrib['text']
-                answer_tokens = tokenizer.tokenize(a)
-                answer_filtered = [word for word in answer_tokens if word not in stopwords]
-                if len(answer_filtered) == 1:  # 1 word answer
-                    instances.append(instance[0].text)
-                    questions.append(question.attrib['text'])
-                    answers.append(answer_filtered[0])
-            else:  # 2 possible answers; false then true
-                a = question[1].attrib['text']
-                answer_tokens = tokenizer.tokenize(a)
-                answer_filtered = [word for word in answer_tokens if word not in stopwords]
-                if len(answer_filtered) == 1:
-                    instances.append(instance[0].text)
-                    questions.append(question.attrib['text'])
-                    answers.append(answer_filtered[0])
-"""

@@ -19,7 +19,7 @@ def parse_file(directory, file):
     answers = []  # true answer per each question, ignore false
 
     tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
-    stopwords = nltk.corpus.stopwords.words('english')  # TODO
+    stopwords = nltk.corpus.stopwords.words('english')
 
     # transforming text data to arrays
     for instance in root:  # instance/story
@@ -27,14 +27,14 @@ def parse_file(directory, file):
             if question[0].attrib['correct'] == 'True':  # 2 possible answers; true then false
                 a = question[0].attrib['text']
                 answer_filtered = tokenizer.tokenize(a)
-                if len(answer_filtered) == 1:  # 1 word answer
+                if len(answer_filtered) == 1:
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
             else:  # 2 possible answers; false then true
                 a = question[1].attrib['text']
                 answer_filtered = tokenizer.tokenize(a)
-                if len(answer_filtered) == 1:
+                if len(nltk.word_tokenize(a)) == 1:
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
@@ -55,7 +55,6 @@ def build_vocababulary(train_data, test_data):
             for word in nltk.word_tokenize(answer):
                 counter[word.lower()] += 1
     word2idx = {w: (i+1) for i, (w, _) in enumerate(counter.most_common())}
-    # TODO: different vocabulary for answers
     word2idx["PAD"] = 0
     #idx2word = {v: k for k, v in word2idx.items()}
 
@@ -167,5 +166,7 @@ epochs = range(1, 32 + 1)
 
 plot_acc(history_dict, epochs)
 
+# TODO: different vocabulary for answers
 # TODO: different encoding structure
 # TODO: predict by saving true and false answers of train data and use argmax on true and false anwsers use max of them
+# TODO: baseline, count the most common possible answer
