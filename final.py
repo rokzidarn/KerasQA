@@ -187,19 +187,7 @@ gprah_epochs = range(1, epochs + 1)
 
 plot_acc(history_dict, gprah_epochs)
 
+# TODO: one-hot encode after vectorize with -> to_categorical(data)
 # TODO: different encoding structure
 # TODO: predict by saving true and false answers of test data and use argmax on possible anwsers -> predict_proba(Y)
 # TODO: SQUAD
-
-# TODO: tokenize in parse_file() then ' '.join() then use vectorizer
-"""
-from sklearn.feature_extraction.text import CountVectorizer
-from nltk.tokenize import RegexpTokenizer
-
-tokenizer = RegexpTokenizer(r'\w+')
-arr = tokenizer.tokenize(text)
-
-vectorizer = CountVectorizer(lowercase=True, stop_words='english')
-vectorizer.fit(data)
-word2idx = vectorizer.vocabulary_
-"""

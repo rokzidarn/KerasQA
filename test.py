@@ -11,6 +11,7 @@ from keras.layers.merge import add, concatenate, dot
 from keras.layers.recurrent import LSTM
 from keras.models import Model
 import matplotlib.pyplot as plt
+from keras.utils import to_categorical
 
 def build_vocababulary(train_data):
     counter = collections.Counter()
@@ -56,21 +57,8 @@ xs = [[word2idx[w.lower()] for w in nltk.word_tokenize(story)] for story in text
 #print(xs)
 #print(pad_sequences(xs, maxlen=max_len_instance))
 
-from sklearn.feature_extraction.text import CountVectorizer
-# list of text documents
-text = ["The quick brown fox jumped over the lazy dog."]
-# create the transform
-vectorizer = CountVectorizer()
-# tokenize and build vocab
-vectorizer.fit(text)
-# summarize
-#print(vectorizer.vocabulary_)
-nltk.download('stopwords')
-tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
-stopwords = nltk.corpus.stopwords.words('english')
-
-
 a = "Hello, my name is Slim!"
-answer_tokens = tokenizer.tokenize(a)
-answer_filtered = [word for word in answer_tokens if word not in stopwords]
-print(' '.join(answer_filtered))
+v_size = 5
+data = [[1, 1, 2, 3, 0, 2], [1,0,4]]
+e = [to_categorical(d, v_size) for d in data]
+print(e[0])
