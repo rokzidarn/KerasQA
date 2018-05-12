@@ -1,5 +1,4 @@
 import os
-import collections
 import nltk
 from xml.etree import ElementTree as Et
 from keras.preprocessing.sequence import pad_sequences
@@ -11,16 +10,16 @@ from keras.layers.merge import add, concatenate, dot
 from keras.layers.recurrent import LSTM
 from keras.models import Model
 import matplotlib.pyplot as plt
-from keras.utils import to_categorical
 
 def parse_file(directory, file):
     root = Et.parse(os.path.join(directory, file)).getroot()
     instances = []  # list of instances/stories
     questions = []  # 1 question per instance
     answers = []  # true answer per each question, ignore false
+    text = ''
+    text_answers = ''
 
     tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
-    stopwords = nltk.corpus.stopwords.words('english')
 
     # transforming text data to arrays
     for instance in root:  # instance/story
@@ -32,6 +31,8 @@ def parse_file(directory, file):
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
+                    text = text + ' ' + instance[0].text + ' ' + question.attrib['text'] + ' ' + answer_filtered[0]
+                    text_answers = text_answers + answer_filtered[0]
             else:  # 2 possible answers; false then true
                 a = question[1].attrib['text']
                 answer_filtered = tokenizer.tokenize(a)
@@ -39,83 +40,35 @@ def parse_file(directory, file):
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
+                    text = text + ' ' + instance[0].text + ' ' + question.attrib['text'] + ' ' + answer_filtered[0]
+                    text_answers = text_answers + answer_filtered[0]
 
-    return instances, questions, answers
+    return instances, questions, answers, text.lower(), text_answers.lower()
 
-def prepare_test(directory, file):
-    root = Et.parse(os.path.join(directory, file)).getroot()
-    instances = []  # list of instances/stories
-    questions = []  # 1 question per instance
-    true_answers = []  # true answer per each question
-    false_answers = []  # true answer per each question
-
-    tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
-    stopwords = nltk.corpus.stopwords.words('english')
-
-    # transforming text data to arrays
-    for instance in root:  # instance/story
-        for question in instance[1]:  # multiple questions
-            if question[0].attrib['correct'] == 'True':  # 2 possible answers; true then false
-                a_true = question[0].attrib['text']
-                a_false = question[1].attrib['text']
-                true_filtered = tokenizer.tokenize(a_true)
-                false_filtered = tokenizer.tokenize(a_false)
-                if len(true_filtered) == 1 and len(false_filtered) == 1:
-                    instances.append(instance[0].text)
-                    questions.append(question.attrib['text'])
-                    true_answers.append(true_filtered[0])
-                    false_answers.append(false_filtered[0])
-            else:  # 2 possible answers; false then true
-                a_true = question[1].attrib['text']
-                a_false = question[0].attrib['text']
-                true_filtered = tokenizer.tokenize(a_true)
-                false_filtered = tokenizer.tokenize(a_false)
-                if len(true_filtered) == 1 and len(false_filtered) == 1:
-                    instances.append(instance[0].text)
-                    true_answers.append(true_filtered[0])
-                    false_answers.append(false_filtered[0])
-
-    return instances, questions, true_answers, false_answers
-
-def build_vocababulary(train_data, test_data):
-    counter = collections.Counter()
-    counter_answer = collections.Counter()
-    i = 0
-    for stories, questions, answers in [train_data, test_data]:
-        for story in stories:
-            for word in nltk.word_tokenize(story):
-                counter[word.lower()] += 1
-        for question in questions:
-            for word in nltk.word_tokenize(question):
-                counter[word.lower()] += 1
-        for answer in answers:
-            i += 1
-            for word in nltk.word_tokenize(answer):
-                counter[word.lower()] += 1
-                counter_answer[word.lower()] += 1
-
-    word2idx = {w: (i+1) for i, (w, _) in enumerate(counter.most_common())}
+def build_vocababulary(text, text_answers):
+    words = nltk.word_tokenize(text)
+    fdist = nltk.FreqDist(words)
+    word2idx = {w: (i + 1) for i, (w, _) in enumerate(fdist.most_common())}
     word2idx["PAD"] = 0
-    # idx2word = {v: k for k, v in word2idx.items()}
 
-    word2idx_answer = {w: (i + 1) for i, (w, _) in enumerate(counter_answer.most_common())}
-    word2idx_answer["PAD"] = 0
+    words = nltk.word_tokenize(text_answers)
+    fdist_answers = nltk.FreqDist(words)
+    word2idx_answers = {w: (i + 1) for i, (w, _) in enumerate(fdist_answers.most_common())}
+    word2idx_answers["PAD"] = 0
 
-    mca = counter_answer.most_common()[0]
-    print('Most common answer: ', mca)
-    print('Baseline: ', round(mca[1] / (len(train_data[2]) + len(test_data[2])), 3))
+    print('Baseline: ', round(fdist_answers.most_common(1)[0][1] / len(word2idx_answers), 3))
 
-    return word2idx, word2idx_answer
+    return word2idx, word2idx_answers
 
-def vectorize(data, word2idx, word2idx_answer, story_maxlen, question_maxlen):
+def vectorize(data, word2idx, word2idx_answers, story_maxlen, question_maxlen):
     Xi = []
     Xq = []
     Y = []
-    instances, questions, answers = data
+    instances, questions, answers, _, _ = data
 
     for instance, question, answer in zip(instances, questions, answers):
-        xi = [word2idx[w.lower()] for w in nltk.word_tokenize(instance)]
-        xq = [word2idx[w.lower()] for w in nltk.word_tokenize(question)]
+        xi = [word2idx[w.lower()] if w.lower() in word2idx else 0 for w in nltk.word_tokenize(instance)]
+        xq = [word2idx[w.lower()] if w.lower() in word2idx else 0 for w in nltk.word_tokenize(question)]
         Xi.append(xi)
         Xq.append(xq)
         Y.append(word2idx[answer.lower()])
@@ -180,23 +133,23 @@ print('Train data (I,Q,A): ', len(train_data[0]), len(train_data[1]), len(train_
 print('Train data max lengths (I,Q,A):', max_len_instance, max_len_question, max_len_answer)
 
 # building vocabulary
-word2idx, word2idx_answer = build_vocababulary(train_data, test_data)
+word2idx, word2idx_answers = build_vocababulary(train_data[3]+' '+test_data[3], train_data[4]+' '+test_data[4])
 vocabulary_size = len(word2idx)
-vocabulary_size_answer = len(word2idx_answer)
+vocabulary_size_answer = len(word2idx_answers)
 
 print('Train + test distinct words: ', vocabulary_size)
 #print(word2idx)
 
 # vectorizing data
-Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answer, max_len_instance, max_len_question)
-Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answer, max_len_instance, max_len_question)
+Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
+Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
 
 # params
 embedding_size = 128
 dropout = 0.3
 latent_size = 128
 answer_dropout = 0.2
-epochs = 24
+epochs = 32
 
 # encoding
 (instance_input, question_input, question_encoder, response) = data_encoding(max_len_instance, max_len_question,
@@ -224,19 +177,3 @@ plot_acc(history_dict, gprah_epochs)
 
 # TODO: different encoding structure
 # TODO: predict by saving true and false answers of test data and use argmax on possible anwsers -> predict_proba(Y)
-
-# TODO: tokenize in parse_file() then ' '.join() then use vectorizer
-"""
-from sklearn.feature_extraction.text import CountVectorizer
-from nltk.tokenize import RegexpTokenizer
-from nltk import FreqDist
-
-tokenizer = RegexpTokenizer(r'\w+')
-arr = tokenizer.tokenize(text)
-
-vectorizer = CountVectorizer(lowercase=True, stop_words='english')
-vectorizer.fit(data)
-word2idx = vectorizer.vocabulary_
-fdist = FreqDist(text)
-fdist.most_common(5)
-"""
