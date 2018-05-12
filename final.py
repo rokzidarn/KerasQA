@@ -159,7 +159,7 @@ Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answer, max_len_
 # params
 embedding_size = 128
 dropout = 0.3
-latent_size = 64
+latent_size = 128
 answer_dropout = 0.2
 epochs = 32
 
@@ -187,7 +187,5 @@ gprah_epochs = range(1, epochs + 1)
 
 plot_acc(history_dict, gprah_epochs)
 
-# TODO: one-hot encode after vectorize with -> to_categorical(data)
 # TODO: different encoding structure
 # TODO: predict by saving true and false answers of test data and use argmax on possible anwsers -> predict_proba(Y)
-# TODO: SQUAD

@@ -42,6 +42,41 @@ def parse_file(directory, file):
 
     return instances, questions, answers
 
+def prepare_test(directory, file):
+    root = Et.parse(os.path.join(directory, file)).getroot()
+    instances = []  # list of instances/stories
+    questions = []  # 1 question per instance
+    true_answers = []  # true answer per each question
+    false_answers = []  # true answer per each question
+
+    tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
+    stopwords = nltk.corpus.stopwords.words('english')
+
+    # transforming text data to arrays
+    for instance in root:  # instance/story
+        for question in instance[1]:  # multiple questions
+            if question[0].attrib['correct'] == 'True':  # 2 possible answers; true then false
+                a_true = question[0].attrib['text']
+                a_false = question[1].attrib['text']
+                true_filtered = tokenizer.tokenize(a_true)
+                false_filtered = tokenizer.tokenize(a_false)
+                if len(true_filtered) == 1 and len(false_filtered) == 1:
+                    instances.append(instance[0].text)
+                    questions.append(question.attrib['text'])
+                    true_answers.append(true_filtered[0])
+                    false_answers.append(false_filtered[0])
+            else:  # 2 possible answers; false then true
+                a_true = question[1].attrib['text']
+                a_false = question[0].attrib['text']
+                true_filtered = tokenizer.tokenize(a_true)
+                false_filtered = tokenizer.tokenize(a_false)
+                if len(true_filtered) == 1 and len(false_filtered) == 1:
+                    instances.append(instance[0].text)
+                    true_answers.append(true_filtered[0])
+                    false_answers.append(false_filtered[0])
+
+    return instances, questions, true_answers, false_answers
+
 def build_vocababulary(train_data, test_data):
     counter = collections.Counter()
     counter_answer = collections.Counter()
@@ -159,9 +194,9 @@ Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answer, max_len_
 # params
 embedding_size = 128
 dropout = 0.3
-latent_size = 64
+latent_size = 128
 answer_dropout = 0.2
-epochs = 32
+epochs = 24
 
 # encoding
 (instance_input, question_input, question_encoder, response) = data_encoding(max_len_instance, max_len_question,
@@ -189,12 +224,12 @@ plot_acc(history_dict, gprah_epochs)
 
 # TODO: different encoding structure
 # TODO: predict by saving true and false answers of test data and use argmax on possible anwsers -> predict_proba(Y)
-# TODO: SQUAD
 
 # TODO: tokenize in parse_file() then ' '.join() then use vectorizer
 """
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk.tokenize import RegexpTokenizer
+from nltk import FreqDist
 
 tokenizer = RegexpTokenizer(r'\w+')
 arr = tokenizer.tokenize(text)
@@ -202,4 +237,6 @@ arr = tokenizer.tokenize(text)
 vectorizer = CountVectorizer(lowercase=True, stop_words='english')
 vectorizer.fit(data)
 word2idx = vectorizer.vocabulary_
+fdist = FreqDist(text)
+fdist.most_common(5)
 """
