@@ -66,7 +66,7 @@ def build_vocababulary(train_data, test_data):
 
     mca = counter_answer.most_common()[0]
     print('Most common answer: ', mca)
-    print('Baseline: ', round(mca[1] / (len(train_data[2]) + len(test_data[2])), 3))
+    #print('Baseline: ', round(mca[1] / (len(train_data[2]) + len(test_data[2])), 3))
 
     return word2idx
 
@@ -129,7 +129,6 @@ def plot_acc(history_dict, epochs):
 data_dir = 'Data'
 train_file = 'train-data.xml'  # combined train and dev samples
 test_file = 'test-data.xml'
-small_file = 'small-data.xml'
 
 # getting data
 train_data = parse_file(data_dir, train_file)

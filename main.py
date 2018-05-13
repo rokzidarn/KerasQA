@@ -119,7 +119,6 @@ def plot_acc(history_dict, epochs):
 data_dir = 'Data'
 train_file = 'train-data.xml'  # combined train and dev samples
 test_file = 'test-data.xml'
-small_file = 'small-data.xml'
 
 # getting data
 train_data = parse_file(data_dir, train_file)

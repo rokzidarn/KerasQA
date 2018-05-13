@@ -35,7 +35,7 @@ def parse_file(directory, file):
             else:  # 2 possible answers; false then true
                 a = question[1].attrib['text']
                 answer_filtered = tokenizer.tokenize(a)
-                if len(nltk.word_tokenize(a)) == 1:
+                if len(answer_filtered) == 1:
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
@@ -92,7 +92,6 @@ def plot_acc(history_dict, epochs):
 data_dir = 'Data'
 train_file = 'train-data.xml'  # combined train and dev samples
 test_file = 'test-data.xml'
-dev_file = 'dev-data.xml'
 
 # getting data
 train_data = parse_file(data_dir, train_file)
@@ -118,23 +117,23 @@ Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answers, max
 Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
 
 # params
-epochs = 4
-dropout_rate = 0.1
+epochs = 24
+dropout_rate = 0.2
 
 # model
 text_input = Input(shape=(max_len_instance,))
 embedded_text = layers.Embedding(64, vocabulary_size)(text_input)
 encoded_text = layers.LSTM(32)(embedded_text)
-#encoded_text = Dropout(dropout_rate)(encoded_text)
+encoded_text = Dropout(dropout_rate)(encoded_text)
 
 question_input = Input(shape=(max_len_question,))
 embedded_question = layers.Embedding(32, vocabulary_size)(question_input)
 encoded_question = layers.LSTM(16)(embedded_question)
-#encoded_question = Dropout(dropout_rate)(encoded_question)
+encoded_question = Dropout(dropout_rate)(encoded_question)
 
 concatenated = layers.concatenate([encoded_text, encoded_question], axis=-1)
 answer = layers.Dense(vocabulary_size_answers, activation='softmax')(concatenated)
-#answer = Dropout(dropout_rate)(answer)
+answer = Dropout(dropout_rate)(answer)
 
 model = Model([text_input, question_input], answer)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
