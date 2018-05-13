@@ -32,16 +32,16 @@ def parse_file(directory, file):
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
                     text = text + ' ' + instance[0].text + ' ' + question.attrib['text'] + ' ' + answer_filtered[0]
-                    text_answers = text_answers + answer_filtered[0]
+                    text_answers = text_answers + ' ' + answer_filtered[0]
             else:  # 2 possible answers; false then true
                 a = question[1].attrib['text']
                 answer_filtered = tokenizer.tokenize(a)
-                if len(nltk.word_tokenize(a)) == 1:
+                if len(answer_filtered) == 1:
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
                     text = text + ' ' + instance[0].text + ' ' + question.attrib['text'] + ' ' + answer_filtered[0]
-                    text_answers = text_answers + answer_filtered[0]
+                    text_answers = text_answers + ' ' + answer_filtered[0]
 
     return instances, questions, answers, text.lower(), text_answers.lower()
 
@@ -56,7 +56,7 @@ def build_vocababulary(text, text_answers):
     word2idx_answers = {w: (i + 1) for i, (w, _) in enumerate(fdist_answers.most_common())}
     word2idx_answers["PAD"] = 0
 
-    print('Baseline: ', round(fdist_answers.most_common(1)[0][1] / len(word2idx_answers), 3))
+    #print('Baseline: ', round(fdist_answers.most_common(1)[0][1] / len(word2idx_answers), 3))
 
     return word2idx, word2idx_answers
 
@@ -71,9 +71,9 @@ def vectorize(data, word2idx, word2idx_answers, story_maxlen, question_maxlen):
         xq = [word2idx[w.lower()] if w.lower() in word2idx else 0 for w in nltk.word_tokenize(question)]
         Xi.append(xi)
         Xq.append(xq)
-        Y.append(word2idx[answer.lower()])
+        Y.append(word2idx_answers[answer.lower()])
 
-    return pad_sequences(Xi, maxlen=story_maxlen), pad_sequences(Xq, maxlen=question_maxlen), np_utils.to_categorical(Y, num_classes=len(word2idx))
+    return pad_sequences(Xi, maxlen=story_maxlen), pad_sequences(Xq, maxlen=question_maxlen), np_utils.to_categorical(Y, num_classes=len(word2idx_answers))
 
 def data_encoding(max_len_instance, max_len_question, vocabulary_size, embedding_size, dropout):
     # inputs
@@ -138,7 +138,7 @@ vocabulary_size = len(word2idx)
 vocabulary_size_answer = len(word2idx_answers)
 
 print('Train + test distinct words: ', vocabulary_size)
-#print(word2idx)
+#print(word2idx_answers)
 
 # vectorizing data
 Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
@@ -159,7 +159,7 @@ epochs = 32
 answer = concatenate([response, question_encoder], axis=-1)
 answer = LSTM(latent_size)(answer)
 answer = Dropout(answer_dropout)(answer)
-answer = Dense(vocabulary_size)(answer)
+answer = Dense(vocabulary_size_answer)(answer)
 output = Activation("softmax")(answer)
 # output = Activation("sigmoid")(answer)
 model = Model(inputs=[instance_input, question_input], outputs=output)
@@ -167,13 +167,10 @@ model.compile(optimizer="rmsprop", loss="categorical_crossentropy", metrics=["ac
 # model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["mae"])
 
 # training
-history = model.fit([Xitrain, Xqtrain], [Ytrain], batch_size=32, epochs=32, validation_data=([Xitest, Xqtest], [Ytest]))
+history = model.fit([Xitrain, Xqtrain], [Ytrain], batch_size=32, epochs=epochs, validation_data=([Xitest, Xqtest], [Ytest]))
 
 history_dict = history.history  # data during training, history_dict.keys()
 print("Max validaton acc: ", round(max(history_dict['val_acc']), 3))
 gprah_epochs = range(1, epochs + 1)
 
 plot_acc(history_dict, gprah_epochs)
-
-# TODO: different encoding structure
-# TODO: predict by saving true and false answers of test data and use argmax on possible anwsers -> predict_proba(Y)

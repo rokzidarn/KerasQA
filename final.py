@@ -11,7 +11,6 @@ from keras.layers.merge import add, concatenate, dot
 from keras.layers.recurrent import LSTM
 from keras.models import Model
 import matplotlib.pyplot as plt
-from keras.utils import to_categorical
 
 def parse_file(directory, file):
     root = Et.parse(os.path.join(directory, file)).getroot()
@@ -20,7 +19,7 @@ def parse_file(directory, file):
     answers = []  # true answer per each question, ignore false
 
     tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
-    stopwords = nltk.corpus.stopwords.words('english')
+    #stopwords = nltk.corpus.stopwords.words('english')
 
     # transforming text data to arrays
     for instance in root:  # instance/story
@@ -35,7 +34,7 @@ def parse_file(directory, file):
             else:  # 2 possible answers; false then true
                 a = question[1].attrib['text']
                 answer_filtered = tokenizer.tokenize(a)
-                if len(nltk.word_tokenize(a)) == 1:
+                if len(answer_filtered) == 1:
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
@@ -63,16 +62,15 @@ def build_vocababulary(train_data, test_data):
     word2idx["PAD"] = 0
     # idx2word = {v: k for k, v in word2idx.items()}
 
-    word2idx_answer = {w: (i + 1) for i, (w, _) in enumerate(counter_answer.most_common())}
-    word2idx_answer["PAD"] = 0
+    #word2idx_answer = {w: (i + 1) for i, (w, _) in enumerate(counter_answer.most_common())}
 
     mca = counter_answer.most_common()[0]
     print('Most common answer: ', mca)
     print('Baseline: ', round(mca[1] / (len(train_data[2]) + len(test_data[2])), 3))
 
-    return word2idx, word2idx_answer
+    return word2idx
 
-def vectorize(data, word2idx, word2idx_answer, story_maxlen, question_maxlen):
+def vectorize(data, word2idx, story_maxlen, question_maxlen):
     Xi = []
     Xq = []
     Y = []
@@ -145,23 +143,22 @@ print('Train data (I,Q,A): ', len(train_data[0]), len(train_data[1]), len(train_
 print('Train data max lengths (I,Q,A):', max_len_instance, max_len_question, max_len_answer)
 
 # building vocabulary
-word2idx, word2idx_answer = build_vocababulary(train_data, test_data)
+word2idx = build_vocababulary(train_data, test_data)
 vocabulary_size = len(word2idx)
-vocabulary_size_answer = len(word2idx_answer)
 
 print('Train + test distinct words: ', vocabulary_size)
 #print(word2idx)
 
 # vectorizing data
-Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answer, max_len_instance, max_len_question)
-Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answer, max_len_instance, max_len_question)
+Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, max_len_instance, max_len_question)
+Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, max_len_instance, max_len_question)
 
 # params
-embedding_size = 128
-dropout = 0.3
-latent_size = 128
+embedding_size = 96
+dropout = 0.2
+latent_size = 132
 answer_dropout = 0.2
-epochs = 32
+epochs = 24
 
 # encoding
 (instance_input, question_input, question_encoder, response) = data_encoding(max_len_instance, max_len_question,
@@ -179,13 +176,10 @@ model.compile(optimizer="rmsprop", loss="categorical_crossentropy", metrics=["ac
 # model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["mae"])
 
 # training
-history = model.fit([Xitrain, Xqtrain], [Ytrain], batch_size=32, epochs=32, validation_data=([Xitest, Xqtest], [Ytest]))
+history = model.fit([Xitrain, Xqtrain], [Ytrain], batch_size=32, epochs=epochs, validation_data=([Xitest, Xqtest], [Ytest]))
 
 history_dict = history.history  # data during training, history_dict.keys()
 print("Max validaton acc: ", round(max(history_dict['val_acc']), 3))
 gprah_epochs = range(1, epochs + 1)
 
 plot_acc(history_dict, gprah_epochs)
-
-# TODO: different encoding structure
-# TODO: predict by saving true and false answers of test data and use argmax on possible anwsers -> predict_proba(Y)
