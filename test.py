@@ -55,9 +55,9 @@ def build_vocababulary(text, text_answers):
     word2idx_answers = {w: (i + 1) for i, (w, _) in enumerate(fdist_answers.most_common())}
     word2idx_answers["PAD"] = 0
 
-    #print('Baseline: ', round(fdist_answers.most_common(1)[0][1] / len(word2idx_answers), 3))
+    mca = fdist_answers.most_common(1)
 
-    return word2idx, word2idx_answers
+    return word2idx, word2idx_answers, mca
 
 def vectorize(data, word2idx, word2idx_answers, story_maxlen, question_maxlen):
     Xi = []
@@ -105,12 +105,13 @@ print('Train data (I,Q,A): ', len(train_data[0]), len(train_data[1]), len(train_
 print('Train data max lengths (I,Q,A):', max_len_instance, max_len_question, max_len_answer)
 
 # building vocabulary
-word2idx_all, word2idx_answers = build_vocababulary(train_data[3]+' '+test_data[3], train_data[4]+' '+test_data[4])
-word2idx = dict(itertools.islice(word2idx_all.items(), 1500))
+word2idx, word2idx_answers, mca = build_vocababulary(train_data[3]+' '+test_data[3], train_data[4]+' '+test_data[4])
 vocabulary_size = len(word2idx)
 vocabulary_size_answers = len(word2idx_answers)
 
-#print('Answers word2IDx: ', word2idx_answers)
+print('Train + test distinct words: ', vocabulary_size)
+print('Baseline: ', round(mca[0][1] / len(train_data[2] + test_data[2]), 3))
+#print(word2idx_answers)
 
 # vectorizing data
 Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
@@ -122,7 +123,7 @@ dropout_rate = 0.2
 
 # model
 text_input = Input(shape=(max_len_instance,))
-embedded_text = layers.Embedding(64, vocabulary_size)(text_input)
+embedded_text = layers.Embedding(64, vocabulary_size)(text_input)  # TODO: reverse input params
 encoded_text = layers.LSTM(32)(embedded_text)
 encoded_text = Dropout(dropout_rate)(encoded_text)
 

@@ -27,7 +27,7 @@ def parse_file(directory, file):
             if question[0].attrib['correct'] == 'True':  # 2 possible answers; true then false
                 a = question[0].attrib['text']
                 answer_filtered = tokenizer.tokenize(a)
-                if len(answer_filtered) == 1:  # TODO: len(nltk.word_tokenize(a))
+                if len(answer_filtered) == 1:
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
@@ -36,7 +36,7 @@ def parse_file(directory, file):
             else:  # 2 possible answers; false then true
                 a = question[1].attrib['text']
                 answer_filtered = tokenizer.tokenize(a)
-                if len(answer_filtered) == 1:  # TODO: len(nltk.word_tokenize(a))
+                if len(answer_filtered) == 1:
                     instances.append(instance[0].text)
                     questions.append(question.attrib['text'])
                     answers.append(answer_filtered[0])
@@ -75,32 +75,6 @@ def vectorize(data, word2idx, word2idx_answers, story_maxlen, question_maxlen):
 
     return pad_sequences(Xi, maxlen=story_maxlen), pad_sequences(Xq, maxlen=question_maxlen), np_utils.to_categorical(Y, num_classes=len(word2idx_answers))
 
-def data_encoding(max_len_instance, max_len_question, vocabulary_size, embedding_size, dropout):
-    # inputs
-    instance_input = Input(shape=(max_len_instance,))
-    question_input = Input(shape=(max_len_question,))
-
-    # story encoder memory
-    instance_encoder = Embedding(input_dim=vocabulary_size, output_dim=embedding_size, input_length=max_len_instance)(instance_input)
-    instance_encoder = Dropout(dropout)(instance_encoder)
-
-    # question encoder
-    question_encoder = Embedding(input_dim=vocabulary_size, output_dim=embedding_size, input_length=max_len_question)(question_input)
-    question_encoder = Dropout(dropout)(question_encoder)
-
-    # match between story and question
-    match = dot([instance_encoder, question_encoder], axes=[2, 2])
-
-    # encode story into vector space of question
-    instance_encoder_c = Embedding(input_dim=vocabulary_size, output_dim=max_len_question, input_length=max_len_instance)(instance_input)
-    instance_encoder_c = Dropout(dropout)(instance_encoder_c)
-
-    # combine match and story vectors
-    response = add([match, instance_encoder_c])
-    response = Permute((2, 1))(response)
-
-    return (instance_input, question_input, question_encoder, response)
-
 def plot_acc(history_dict, epochs):
     acc = history_dict['acc']
     val_acc = history_dict['val_acc']
@@ -138,11 +112,12 @@ vocabulary_size_answer = len(word2idx_answers)
 
 print('Train + test distinct words: ', vocabulary_size)
 print('Baseline: ', round(mca[0][1] / len(train_data[2] + test_data[2]), 3))
-#print(word2idx_answers)
 
 # vectorizing data
 Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
 Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
+
+# TODO: base model
 
 # params
 embedding_size = 128
@@ -152,8 +127,27 @@ answer_dropout = 0.2
 epochs = 32
 
 # encoding
-(instance_input, question_input, question_encoder, response) = data_encoding(max_len_instance, max_len_question,
-                                                                             vocabulary_size, embedding_size, dropout)
+instance_input = Input(shape=(max_len_instance,))
+question_input = Input(shape=(max_len_question,))
+
+# story encoder memory
+instance_encoder = Embedding(input_dim=vocabulary_size, output_dim=embedding_size, input_length=max_len_instance)(instance_input)
+instance_encoder = Dropout(dropout)(instance_encoder)
+
+# question encoder
+question_encoder = Embedding(input_dim=vocabulary_size, output_dim=embedding_size, input_length=max_len_question)(question_input)
+question_encoder = Dropout(dropout)(question_encoder)
+
+# match between story and question
+match = dot([instance_encoder, question_encoder], axes=[2, 2])
+
+# encode story into vector space of question
+instance_encoder_c = Embedding(input_dim=vocabulary_size, output_dim=max_len_question, input_length=max_len_instance)(instance_input)
+instance_encoder_c = Dropout(dropout)(instance_encoder_c)
+
+# combine match and story vectors
+response = add([match, instance_encoder_c])
+response = Permute((2, 1))(response)
 
 # creating network
 answer = concatenate([response, question_encoder], axis=-1)
@@ -161,10 +155,8 @@ answer = LSTM(latent_size)(answer)
 answer = Dropout(answer_dropout)(answer)
 answer = Dense(vocabulary_size_answer)(answer)
 output = Activation("softmax")(answer)
-# TODO: Activation("sigmoid")(answer)
 model = Model(inputs=[instance_input, question_input], outputs=output)
 model.compile(optimizer="rmsprop", loss="categorical_crossentropy", metrics=["accuracy"])
-# TODO: model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["mae"])
 
 # training
 history = model.fit([Xitrain, Xqtrain], [Ytrain], batch_size=32, epochs=epochs, validation_data=([Xitest, Xqtest], [Ytest]))
