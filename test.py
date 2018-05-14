@@ -8,7 +8,6 @@ from keras import layers
 from keras import Input
 from keras.models import Model
 import matplotlib.pyplot as plt
-import itertools
 
 def parse_file(directory, file):
     root = Et.parse(os.path.join(directory, file)).getroot()
@@ -98,9 +97,9 @@ train_data = parse_file(data_dir, train_file)
 test_data = parse_file(data_dir, test_file)
 
 # text stats
-max_len_instance = len(nltk.word_tokenize((max(train_data[0], key=len))))
-max_len_question = len(nltk.word_tokenize((max(train_data[1], key=len))))
-max_len_answer = len(nltk.word_tokenize((max(train_data[2], key=len))))
+max_len_instance = len(nltk.word_tokenize(str(max(train_data[0], key=len))))
+max_len_question = len(nltk.word_tokenize(str(max(train_data[1], key=len))))
+max_len_answer = len(nltk.word_tokenize(str(max(train_data[2], key=len))))
 print('Train data (I,Q,A): ', len(train_data[0]), len(train_data[1]), len(train_data[2]))
 print('Train data max lengths (I,Q,A):', max_len_instance, max_len_question, max_len_answer)
 
@@ -118,18 +117,22 @@ Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answers, max
 Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
 
 # params
-epochs = 24
-dropout_rate = 0.2
+epochs = 64
+dropout_rate = 0.01
+embedding_size_text = 64
+latent_size_text = 64
+embedding_size_question = 32
+latent_size_question = 32
 
 # model
 text_input = Input(shape=(max_len_instance,))
-embedded_text = layers.Embedding(64, vocabulary_size)(text_input)  # TODO: reverse input params
-encoded_text = layers.LSTM(32)(embedded_text)
+embedded_text = layers.Embedding(vocabulary_size, embedding_size_text)(text_input)
+encoded_text = layers.LSTM(latent_size_text)(embedded_text)
 encoded_text = Dropout(dropout_rate)(encoded_text)
 
 question_input = Input(shape=(max_len_question,))
-embedded_question = layers.Embedding(32, vocabulary_size)(question_input)
-encoded_question = layers.LSTM(16)(embedded_question)
+embedded_question = layers.Embedding(vocabulary_size, embedding_size_question)(question_input)
+encoded_question = layers.LSTM(latent_size_question)(embedded_question)
 encoded_question = Dropout(dropout_rate)(encoded_question)
 
 concatenated = layers.concatenate([encoded_text, encoded_question], axis=-1)
@@ -140,7 +143,7 @@ model = Model([text_input, question_input], answer)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['acc'])
 
 # training
-history = model.fit([Xitrain, Xqtrain], [Ytrain], batch_size=64, epochs=epochs, validation_data=([Xitest, Xqtest], [Ytest]))
+history = model.fit([Xitrain, Xqtrain], [Ytrain], batch_size=128, epochs=epochs, validation_data=([Xitest, Xqtest], [Ytest]))
 
 history_dict = history.history  # data during training, history_dict.keys()
 print("Max validaton acc: ", round(max(history_dict['val_acc']), 3))
