@@ -78,12 +78,14 @@ def plot_acc(history_dict, epochs):
     val_acc = history_dict['val_acc']
 
     plt.plot(epochs, acc, 'r', label='Training acc')
-    plt.plot(epochs, val_acc, 'g', label='Validation acc')
-    plt.title('Training and validation accuracy')
+    plt.plot(epochs, val_acc, 'g', label='Testing acc')
+    plt.title('Training and testing accuracy')
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.legend()
     plt.show()
+
+    plt.savefig('cpu_test.png')
 
 # MAIN
 
@@ -117,12 +119,12 @@ Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answers, max
 Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
 
 # params
-epochs = 64
-dropout_rate = 0.01
-embedding_size_text = 64
-latent_size_text = 64
-embedding_size_question = 32
-latent_size_question = 32
+epochs = 50
+dropout_rate = 0.02
+embedding_size_text = 96
+embedding_size_question = 96
+latent_size_text = 128
+latent_size_question = 112
 
 # model
 text_input = Input(shape=(max_len_instance,))

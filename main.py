@@ -106,12 +106,14 @@ def plot_acc(history_dict, epochs):
     val_acc = history_dict['val_acc']
 
     plt.plot(epochs, acc, 'r', label='Training acc')
-    plt.plot(epochs, val_acc, 'g', label='Validation acc')
-    plt.title('Training and validation accuracy')
+    plt.plot(epochs, val_acc, 'g', label='Testing acc')
+    plt.title('Training and testing accuracy')
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.legend()
     plt.show()
+
+    plt.savefig('gpu_test.png')
 
 # MAIN
 
