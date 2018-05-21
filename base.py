@@ -79,13 +79,15 @@ def plot_acc(history_dict, epochs):
     acc = history_dict['acc']
     val_acc = history_dict['val_acc']
 
+    fig = plt.figure()
     plt.plot(epochs, acc, 'r', label='Training acc')
-    plt.plot(epochs, val_acc, 'g', label='Validation acc')
-    plt.title('Training and validation accuracy')
+    plt.plot(epochs, val_acc, 'g', label='Testing acc')
+    plt.title('Training and testing accuracy')
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.legend()
     plt.show()
+    #fig.savefig('gpu_test.png')
 
 # MAIN
 
@@ -117,14 +119,12 @@ print('Baseline: ', round(mca[0][1] / len(train_data[2] + test_data[2]), 3))
 Xitrain, Xqtrain, Ytrain = vectorize(train_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
 Xitest, Xqtest, Ytest = vectorize(test_data, word2idx, word2idx_answers, max_len_instance, max_len_question)
 
-# TODO: base model
-
 # params
 embedding_size = 128
 dropout = 0.3
 latent_size = 128
 answer_dropout = 0.2
-epochs = 32
+epochs = 30
 
 # encoding
 instance_input = Input(shape=(max_len_instance,))
@@ -166,3 +166,4 @@ print("Max validaton acc: ", round(max(history_dict['val_acc']), 3))
 gprah_epochs = range(1, epochs + 1)
 
 plot_acc(history_dict, gprah_epochs)
+# ACC: 0.443
